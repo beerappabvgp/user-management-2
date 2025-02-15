@@ -39,4 +39,14 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// http://localhost:5000/users/67b0a32982a51aeae08e9f49
+router.delete("/:id",  async (req, res) => {
+    const { id } = req.params;
+    const user = await User.findByIdAndDelete(id);
+    res.status(200).json({
+        msg: "user deleted successfully ... ",
+        user: user
+    });
+});
+
 export default router;
