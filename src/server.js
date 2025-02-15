@@ -6,7 +6,7 @@ const app = express();
 const port = 5000;
 app.use(express.json());
 app.use("/users", userRoutes);
-const mongo_url = "mongodb+srv://beerappabharathb:1XFok1E9wKPEYicb@cluster0.9embs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const mongo_url = "mongodb+srv://beerappabharathb:1XFok1E9wKPEYicb@cluster0.9embs.mongodb.net/user-management?retryWrites=true&w=majority&appName=Cluster0";
 
 // get, post, put, delete 
 
