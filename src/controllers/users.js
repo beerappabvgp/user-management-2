@@ -1,47 +1,183 @@
 import { User } from "../models/userSchema.js";
+import bcrypt from "bcryptjs";
 
 export const message = (req, res) => {
-    res.send("Hi there!!!");
-}
+  res.send("Hi there!!!");
+};
 
 export const createUser = async (req, res) => {
+  try {
+    console.log(req.body);
+    const { username, password, email } = req.body;
+    if (!username || !password || !email) {
+      return res.status(400).json({
+        msg: "All fields are required ... ",
+      });
+    }
+    if (typeof username !== "string") {
+      return res.status(400).json({
+        msg: "username must be a string",
+      });
+    }
+    if (typeof email !== "string") {
+      return res.status(400).json({
+        msg: "email must be a string",
+      });
+    }
+    if (typeof password !== "string") {
+      return res.status(400).json({
+        msg: "password must be a string",
+      });
+    }
+    console.log(password);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    console.log("hashedPassword is:", hashedPassword);
+
+    // I wanted to put data on the db
+    console.log({...req.body, password: hashedPassword });
+    const user = await User.create({...req.body, password: hashedPassword });
+    return res.status(201).json({
+      msg: "User created successfully .... ",
+      user: user,
+    });
+  } catch (error) {
+    console.log(error);
+    res.send(error);
+  }
+};
+
+export const login = async (req, res) => {
     try {
-        console.log(req.body);
-        const { username, password, email } = req.body;
-        if (!username || !password || !email) {
+        const { email, password } = req.body;
+        if (!email || !password) {
             return res.status(400).json({
-                "msg": "All fields are required ... "
+                msg: "Both email and password are required"
             });
         }
-        if (typeof username !== "string") {
-            return res.status(400).json({
-                "msg": "username must be a string"
-            });
+        console.log("email: ", email);
+        // Find one document in the user collection with the email
+        const user = await User.findOne({ email: email });
+        console.log("user: ", user);
+        if (!user) {
+            res.status(400).json({
+                msg: "The user with the email does not exist on the DB ... "
+            })
         }
-        if (typeof email !== "string") {
-            return res.status(400).json({
-                "msg": "email must be a string"
+
+        const isSame = await bcrypt.compare(password, user.password);
+        console.log("isSame: ", isSame);
+        if (isSame) {
+            return res.status(200).json({
+                msg: "Signed in successfully ..."
             });
-        }
-        if (typeof password !== "string") {
+        } else {
             return res.status(400).json({
-                "msg": "password must be a string"
+                msg: "Passwords did not match ... "
             });
         }
 
-
-        // I wanted to put data on the db 
-        const user = await User.create(req.body);
-        return res.status(201).json({
-            "msg": "User created successfully .... ",
-            user: user
-        });
     } catch (error) {
         console.log(error);
     }
 }
 
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    return res.status(200).json({
+      msg: "Retrieved all the users successfully ... ",
+      users: users,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
 
+export const getUser = async (req, res) => {
+  try {
+    console.log(req.params);
+    const { id } = req.params;
+    // get the user document with this id
+    const user = await User.findById(id);
+    res.status(200).json({
+      msg: "user retrieved successfully ... ",
+      user: user,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findByIdAndDelete(id);
+  if (!user) {
+    res.status(400).json({
+      msg: "No user in the DB",
+      user: user,
+    });
+  }
+  res.status(200).json({
+    msg: "user deleted successfully ... ",
+    user: user,
+  });
+};
+
+
+export const updateUser = async (req, res) => {
+    try {
+      console.log(req.body);
+      const { username, password, email } = req.body;
+      // if (!username || !password || !email) {
+      //     return res.status(400).json({
+      //         "msg": "All fields are required ... "
+      //     });
+      // }
+      // if (typeof username !== "string") {
+      //     return res.status(400).json({
+      //         "msg": "username must be a string"
+      //     });
+      // }
+      // if (typeof email !== "string") {
+      //     return res.status(400).json({
+      //         "msg": "email must be a string"
+      //     });
+      // }
+      // if (typeof password !== "string") {
+      //     return res.status(400).json({
+      //         "msg": "password must be a string"
+      //     });
+      // }
+  
+      const { id } = req.params;
+  
+      // I wanted to update data on the db
+      const user = await User.findByIdAndUpdate(id, req.body, { new: true });
+      return res.status(201).json({
+        msg: "User updated successfully .... ",
+        user: user,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+}
+
+export const patchUser = async (req, res) => {
+    try {
+      console.log(req.body);
+      const { username, password, email } = req.body;
+      const { id } = req.params;
+  
+      // I wanted to update data on the db
+      const user = await User.findByIdAndUpdate(id, req.body, { new: true });
+      return res.status(201).json({
+        msg: "User updated successfully .... ",
+        user: user,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
 // 200 - ok
 // 400 - client side errors
 // 500 - server side errors
