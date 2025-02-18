@@ -1,6 +1,7 @@
 import { User } from "../models/userSchema.js";
 import bcrypt from "bcryptjs";
-
+import jsonwebtoken from "jsonwebtoken";
+import "dotenv/config";
 export const message = (req, res) => {
   res.send("Hi there!!!");
 };
@@ -61,14 +62,18 @@ export const login = async (req, res) => {
         if (!user) {
             res.status(400).json({
                 msg: "The user with the email does not exist on the DB ... "
-            })
+            });
         }
 
         const isSame = await bcrypt.compare(password, user.password);
         console.log("isSame: ", isSame);
+        // generate a new jwt token for the user and send it to the client 
+        const token = jsonwebtoken.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "120ms"});
+        console.log("token is: ", token);
         if (isSame) {
             return res.status(200).json({
-                msg: "Signed in successfully ..."
+                msg: "Signed in successfully ...",
+                token: token,
             });
         } else {
             return res.status(400).json({

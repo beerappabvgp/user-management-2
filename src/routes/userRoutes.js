@@ -11,8 +11,16 @@ import {
   login
 } from "../controllers/users.js";
 import { User } from "../models/userSchema.js";
+import { userMiddleware } from "../middlewares/userMiddleware.js";
 
 const router = express.Router();
+
+router.get("/dashboard", userMiddleware , (req, res) => {
+  return res.status(200).json({
+    msg: "Welcome to the dashboard page ... ",
+    id: req.user,
+  });
+});
 
 // http://localhost:5000/users/
 router.get("/", message);
@@ -33,6 +41,6 @@ router.delete("/:id", deleteUser);
 
 router.put("/:id", updateUser);
 
-router.patch("/:id", patchUser);
+router.patch("/:id", patchUser);  
 
 export default router;
